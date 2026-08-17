@@ -1,0 +1,16 @@
+{
+	"name": "ls_azure_key_vault_dev",
+	"properties": {
+		"parameters": {
+			"p_dev_key_Vault_name": {
+				"type": "string",
+				"defaultValue": "azure-keyvault-dev-viz"
+			}
+		},
+		"annotations": [],
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "@{concat('https://',linkedService().p_dev_key_Vault_name,'.vault.azure.net/')}"
+		}
+	}
+}
