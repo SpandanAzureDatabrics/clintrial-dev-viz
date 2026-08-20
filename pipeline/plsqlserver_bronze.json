@@ -44,11 +44,115 @@
 							"pDsTableName": {
 								"value": "@pipeline().parameters.pPLTableName",
 								"type": "Expression"
-							},
-							"abc": "abc"
+							}
 						}
 					},
 					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEachSourceTable",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lkp_Src_Contro_table_Metadatta",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lkp_Src_Contro_table_Metadatta').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "Copy_SRC_Bronze",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"queryTimeout": "02:00:00",
+									"isolationLevel": "ReadCommitted",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "ParquetSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "ParquetWriteSettings"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_sql_server_param",
+									"type": "DatasetReference",
+									"parameters": {
+										"pDsServerName": {
+											"value": "@item().SrcServerName",
+											"type": "Expression"
+										},
+										"pDsDataBaseName": {
+											"value": "@item().SrcDatabaseName",
+											"type": "Expression"
+										},
+										"pDsSchemaName": {
+											"value": "@item().SrcSchemaName",
+											"type": "Expression"
+										},
+										"pDsTableName": {
+											"value": "@item().SrcTableName",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_source_adlsgen2_parquet",
+									"type": "DatasetReference",
+									"parameters": {
+										"pDsContainerName": {
+											"value": "@item().LandingContainerName",
+											"type": "Expression"
+										},
+										"pDsFolderName": {
+											"value": "@concat(item().SrcSchemaName,'/',item().SrcTableName,'/ ingest_date',formatDateTime(utcNow()),'yyyy-MM-dd')",
+											"type": "Expression"
+										},
+										"pDsFileName": {
+											"value": "@concat(item().SrcTableName,formatDateTime(utcNow(),'yyyyMMddHHmmss'),'.parqquet')",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
 				}
 			}
 		],
