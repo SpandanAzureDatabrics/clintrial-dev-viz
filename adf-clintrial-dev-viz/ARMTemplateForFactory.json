@@ -545,12 +545,12 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/trg_scheduleClinTrialDevSourceToGoldMaster')]",
+			"name": "[concat(parameters('factoryName'), '/trigger1')]",
 			"type": "Microsoft.DataFactory/factories/triggers",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"annotations": [],
-				"runtimeState": "Started",
+				"runtimeState": "Stopped",
 				"pipelines": [
 					{
 						"pipelineReference": {
@@ -565,7 +565,7 @@
 					"recurrence": {
 						"frequency": "Minute",
 						"interval": 1,
-						"startTime": "2026-08-20T21:38:00",
+						"startTime": "2026-08-20T21:46:00",
 						"timeZone": "India Standard Time"
 					}
 				}
