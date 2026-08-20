@@ -27,6 +27,9 @@
 			},
 			"pDsTableName": {
 				"type": "string"
+			},
+			"abc": {
+				"type": "string"
 			}
 		},
 		"annotations": [],

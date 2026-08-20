@@ -18,7 +18,7 @@
 					"source": {
 						"type": "SqlServerSource",
 						"sqlReaderQuery": {
-							"value": "@concat(\n    'SELECT * FROM ',\n    pipeline().parameters.pPLDataBaseName,\n    '.',\n    pipeline().parameters.pPLScehamNAme,\n    '.',\n    pipeline().parameters.pPLTableName\n)\n\n",
+							"value": "@concat('select * from ',pipeline().parameters.pPLDataBaseName,'.',pipeline().parameters.pPLScehamNAme,'.',pipeline().parameters.pPLTableName,' where ' ,coalesce('Enabled',''),'=','\"True\"')\n",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00",
@@ -44,7 +44,8 @@
 							"pDsTableName": {
 								"value": "@pipeline().parameters.pPLTableName",
 								"type": "Expression"
-							}
+							},
+							"abc": "abc"
 						}
 					},
 					"firstRowOnly": false
