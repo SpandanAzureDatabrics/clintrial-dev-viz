@@ -15,13 +15,7 @@
 						"referenceName": "plsqlserver_bronze",
 						"type": "PipelineReference"
 					},
-					"waitOnCompletion": true,
-					"parameters": {
-						"pPLserverName": "localhost\\SQLEXPRESS",
-						"pPLDataBaseName": "dev_clintrail_edc_src",
-						"pPLScehamNAme": "dcsrcmetadata",
-						"pPLTableName": "srcEdcClintrailToLandControl"
-					}
+					"waitOnCompletion": true
 				}
 			}
 		],
