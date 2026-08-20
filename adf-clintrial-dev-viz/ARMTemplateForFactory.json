@@ -34,6 +34,18 @@
 		"ls_on_prmise_metadataTable_properties_typeProperties_userName": {
 			"type": "string",
 			"defaultValue": "adf_login"
+		},
+		"ls_source_adls_gen2_parquet_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://stclintrialdevviz.dfs.core.windows.net/"
+		},
+		"AzureDataLakeStorage534_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/c71a2b06-1819-428a-baaa-f7db10c2f77f/resourceGroups/rg-clin-trial-dev-viz/providers/Microsoft.Storage/storageAccounts/stclintrialdevviz"
+		},
+		"AzureDataLakeStorage534_properties_groupId": {
+			"type": "string",
+			"defaultValue": "dfs"
 		}
 	},
 	"variables": {
@@ -62,7 +74,7 @@
 							"source": {
 								"type": "SqlServerSource",
 								"sqlReaderQuery": {
-									"value": "@concat('select * from ',pipeline().parameters.pPLDataBaseName,'.',pipeline().parameters.pPLScehamNAme,'.',pipeline().parameters.pPLTableName,' where ' ,coalesce('Enabled',''),'=','\"True\"')\n",
+									"value": "@concat('select * from ',pipeline().parameters.pPLDataBaseName,'.',pipeline().parameters.pPLScehamNAme,'.',pipeline().parameters.pPLTableName,' where ' ,coalesce('Enabled',''),'=','''True''')\n",
 									"type": "Expression"
 								},
 								"queryTimeout": "02:00:00",
@@ -88,11 +100,116 @@
 									"pDsTableName": {
 										"value": "@pipeline().parameters.pPLTableName",
 										"type": "Expression"
-									},
-									"abc": "abc"
+									}
 								}
 							},
 							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "ForEachSourceTable",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Lkp_Src_Contro_table_Metadatta",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Lkp_Src_Contro_table_Metadatta').output.value",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "Copy_SRC_Bronze",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "SqlServerSource",
+											"queryTimeout": "02:00:00",
+											"isolationLevel": "ReadCommitted",
+											"partitionOption": "None"
+										},
+										"sink": {
+											"type": "ParquetSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings",
+												"copyBehavior": "PreserveHierarchy"
+											},
+											"formatSettings": {
+												"type": "ParquetWriteSettings"
+											}
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "ds_sql_server_param",
+											"type": "DatasetReference",
+											"parameters": {
+												"pDsServerName": {
+													"value": "@item().SrcServerName",
+													"type": "Expression"
+												},
+												"pDsDataBaseName": {
+													"value": "@item().SrcDatabaseName",
+													"type": "Expression"
+												},
+												"pDsSchemaName": {
+													"value": "@item().SrcSchemaName",
+													"type": "Expression"
+												},
+												"pDsTableName": {
+													"value": "@item().SrcTableName",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "ds_source_adlsgen2_parquet",
+											"type": "DatasetReference",
+											"parameters": {
+												"pDsContainerName": {
+													"value": "@item().LandingContainerName",
+													"type": "Expression"
+												},
+												"pDsFolderName": {
+													"value": "@concat(\n    item().SrcSchemaName,\n   '/',\n   item().SrcTableName,\n   '/ ingest_date=',\n   formatDateTime(utcNow(),'yyyy-MM-dd')\n   )",
+													"type": "Expression"
+												},
+												"pDsFileName": {
+													"value": "@concat(item().SrcTableName,formatDateTime(utcNow(),'yyyyMMddHHmmss'),'.parquet')",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								}
+							]
 						}
 					}
 				],
@@ -123,7 +240,8 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/ds_sql_server_param')]"
+				"[concat(variables('factoryId'), '/datasets/ds_sql_server_param')]",
+				"[concat(variables('factoryId'), '/datasets/ds_source_adlsgen2_parquet')]"
 			]
 		},
 		{
@@ -156,9 +274,6 @@
 						"type": "string"
 					},
 					"pDsTableName": {
-						"type": "string"
-					},
-					"abc": {
 						"type": "string"
 					}
 				},
@@ -310,6 +425,154 @@
 			"apiVersion": "2018-06-01",
 			"properties": {},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_source_adls_gen2_parquet')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('ls_source_adls_gen2_parquet_properties_typeProperties_url')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_source_adlsgen2_parquet')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_source_adls_gen2_parquet",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"pDsContainerName": {
+						"type": "string"
+					},
+					"pDsFolderName": {
+						"type": "string"
+					},
+					"pDsFileName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().pDsFileName",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@dataset().pDsFolderName",
+							"type": "Expression"
+						},
+						"fileSystem": {
+							"value": "@dataset().pDsContainerName",
+							"type": "Expression"
+						}
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_source_adls_gen2_parquet')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/default/AzureDataLakeStorage534')]",
+			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks/managedPrivateEndpoints",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"privateLinkResourceId": "[parameters('AzureDataLakeStorage534_properties_privateLinkResourceId')]",
+				"groupId": "[parameters('AzureDataLakeStorage534_properties_groupId')]"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/plMasterPipelineClinTrialDevSourceToGold')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "ExecuteMasterCilnTrialDevSourceToGold",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "plsqlserver_bronze",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"pPLserverName": "localhost\\SQLEXPRESS",
+								"pPLDataBaseName": "dev_clintrail_edc_src",
+								"pPLScehamNAme": "dcsrcmetadata",
+								"pPLTableName": "srcEdcClintrailToLandControl"
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "clintrial_trial_dev_source_to_bronze"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/plsqlserver_bronze')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/trgClinTrialDevMasterScheeduled')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "plMasterPipelineClinTrialDevSourceToGold",
+							"type": "PipelineReference"
+						},
+						"parameters": {}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Minute",
+						"interval": 1,
+						"startTime": "2026-08-20T21:26:00",
+						"timeZone": "India Standard Time"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/plMasterPipelineClinTrialDevSourceToGold')]"
+			]
 		}
 	]
 }

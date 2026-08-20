@@ -26,6 +26,15 @@
 		"ls_on_prmise_metadataTable_properties_typeProperties_userName": {
 			"value": "adf_login"
 		},
+		"ls_source_adls_gen2_parquet_properties_typeProperties_url": {
+			"value": "https://stclintrialdevviz.dfs.core.windows.net/"
+		},
+		"AzureDataLakeStorage534_properties_privateLinkResourceId": {
+			"value": "/subscriptions/c71a2b06-1819-428a-baaa-f7db10c2f77f/resourceGroups/rg-clin-trial-dev-viz/providers/Microsoft.Storage/storageAccounts/stclintrialdevviz"
+		},
+		"AzureDataLakeStorage534_properties_groupId": {
+			"value": "dfs"
+		},
 		"containerUri": {
 			"value": ""
 		},
