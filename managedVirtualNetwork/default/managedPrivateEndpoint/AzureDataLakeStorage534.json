@@ -1,0 +1,7 @@
+{
+	"name": "AzureDataLakeStorage534",
+	"properties": {
+		"privateLinkResourceId": "/subscriptions/c71a2b06-1819-428a-baaa-f7db10c2f77f/resourceGroups/rg-clin-trial-dev-viz/providers/Microsoft.Storage/storageAccounts/stclintrialdevviz",
+		"groupId": "dfs"
+	}
+}
