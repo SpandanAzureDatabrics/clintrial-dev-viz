@@ -91,7 +91,8 @@
 								"sink": {
 									"type": "ParquetSink",
 									"storeSettings": {
-										"type": "AzureBlobFSWriteSettings"
+										"type": "AzureBlobFSWriteSettings",
+										"copyBehavior": "PreserveHierarchy"
 									},
 									"formatSettings": {
 										"type": "ParquetWriteSettings"
@@ -141,11 +142,11 @@
 											"type": "Expression"
 										},
 										"pDsFolderName": {
-											"value": "@concat(item().SrcSchemaName,'/',item().SrcTableName,'/ ingest_date',formatDateTime(utcNow()),'yyyy-MM-dd')",
+											"value": "@concat(\n    item().SrcSchemaName,\n   '/',\n   item().SrcTableName,\n   '/ ingest_date=',\n   formatDateTime(utcNow(),'yyyy-MM-dd')\n   )",
 											"type": "Expression"
 										},
 										"pDsFileName": {
-											"value": "@concat(item().SrcTableName,formatDateTime(utcNow(),'yyyyMMddHHmmss'),'.parqquet')",
+											"value": "@concat(item().SrcTableName,formatDateTime(utcNow(),'yyyyMMddHHmmss'),'.parquet')",
 											"type": "Expression"
 										}
 									}
