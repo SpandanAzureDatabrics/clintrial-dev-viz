@@ -5,6 +5,27 @@
 		"factoryName": {
 			"value": "adf-clintrial-dev-viz"
 		},
+		"ls_azure_databricks_accessToken": {
+			"value": ""
+		},
+		"ls_on_prmise_metadataTable_password": {
+			"value": ""
+		},
+		"ls_azure_databricks_properties_typeProperties_existingClusterId": {
+			"value": "'spandan nagare's Cluster 2026-08-18 00:30:54'"
+		},
+		"ls_azure_key_vault_dev_properties_typeProperties_baseUrl": {
+			"value": "@{concat('https://',linkedService().p_dev_key_Vault_name,'.vault.azure.net/')}"
+		},
+		"ls_on_prmise_metadataTable_properties_typeProperties_server": {
+			"value": "@{linkedService().pLsServerName}"
+		},
+		"ls_on_prmise_metadataTable_properties_typeProperties_database": {
+			"value": "@{linkedService().pLsDataBaseName}"
+		},
+		"ls_on_prmise_metadataTable_properties_typeProperties_userName": {
+			"value": "adf_login"
+		},
 		"containerUri": {
 			"value": ""
 		},

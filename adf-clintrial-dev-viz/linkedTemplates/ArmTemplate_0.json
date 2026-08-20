@@ -6,6 +6,34 @@
 			"type": "string",
 			"metadata": "Data Factory name",
 			"defaultValue": "adf-clintrial-dev-viz"
+		},
+		"ls_on_prmise_metadataTable_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'ls_on_prmise_metadataTable'"
+		},
+		"ls_azure_databricks_accessToken": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accessToken' of 'ls_azure_databricks'"
+		},
+		"ls_azure_key_vault_dev_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "@{concat('https://',linkedService().p_dev_key_Vault_name,'.vault.azure.net/')}"
+		},
+		"ls_on_prmise_metadataTable_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "@{linkedService().pLsServerName}"
+		},
+		"ls_on_prmise_metadataTable_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "@{linkedService().pLsDataBaseName}"
+		},
+		"ls_on_prmise_metadataTable_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "adf_login"
+		},
+		"ls_azure_databricks_properties_typeProperties_existingClusterId": {
+			"type": "string",
+			"defaultValue": "'spandan nagare's Cluster 2026-08-18 00:30:54'"
 		}
 	},
 	"variables": {
@@ -13,11 +41,86 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/ls_azure_key_vault_dev')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"parameters": {
+					"p_dev_key_Vault_name": {
+						"type": "string",
+						"defaultValue": "azure-keyvault-dev-viz"
+					}
+				},
+				"annotations": [],
+				"type": "AzureKeyVault",
+				"typeProperties": {
+					"baseUrl": "[parameters('ls_azure_key_vault_dev_properties_typeProperties_baseUrl')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SHIR-on-premise')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "SelfHosted",
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/shir-sql-server-on-prem')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "SelfHosted",
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/default')]",
 			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks",
 			"apiVersion": "2018-06-01",
 			"properties": {},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_on_prmise_metadataTable')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"parameters": {
+					"pLsServerName": {
+						"type": "string"
+					},
+					"pLsDataBaseName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "SqlServer",
+				"typeProperties": {
+					"server": "[parameters('ls_on_prmise_metadataTable_properties_typeProperties_server')]",
+					"database": "[parameters('ls_on_prmise_metadataTable_properties_typeProperties_database')]",
+					"encrypt": "optional",
+					"trustServerCertificate": true,
+					"authenticationType": "SQL",
+					"userName": "[parameters('ls_on_prmise_metadataTable_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('ls_on_prmise_metadataTable_password')]"
+					}
+				},
+				"connectVia": {
+					"referenceName": "shir-sql-server-on-prem",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/shir-sql-server-on-prem')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/AutoResolveIntegrationRuntime')]",
@@ -42,6 +145,116 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_sql_server_param')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_on_prmise_metadataTable",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "SqlServerTable",
+				"schema": [],
+				"typeProperties": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_on_prmise_metadataTable')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_azure_databricks')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureDatabricks",
+				"typeProperties": {
+					"domain": "https://adb-7405618103483793.13.azuredatabricks.net",
+					"accessToken": {
+						"type": "SecureString",
+						"value": "[parameters('ls_azure_databricks_accessToken')]"
+					},
+					"existingClusterId": "[parameters('ls_azure_databricks_properties_typeProperties_existingClusterId')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/plsqlserver_bronze')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Lkp_Src_Contro_table_Metadatta",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 3,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"sqlReaderQuery": {
+									"value": "@concat(\n    'SELECT * FROM ',\n    pipeline().parameters.pPLDataBaseName,\n    '.',\n    pipeline().parameters.pPLScehamNAme,\n    '.',\n    pipeline().parameters.pPLTableName\n)\n\n",
+									"type": "Expression"
+								},
+								"queryTimeout": "02:00:00",
+								"isolationLevel": "ReadCommitted",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "ds_sql_server_param",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"pPLserverName": {
+						"type": "string",
+						"defaultValue": "localhost\\SQLEXPRESS"
+					},
+					"pPLDataBaseName": {
+						"type": "string",
+						"defaultValue": "dev_clintrail_edc_src"
+					},
+					"pPLScehamNAme": {
+						"type": "string",
+						"defaultValue": "edcsrcmetadata"
+					},
+					"pPLTableName": {
+						"type": "string",
+						"defaultValue": "srcEdcClintrailToLandControl"
+					}
+				},
+				"folder": {
+					"name": "clintrial_trial_dev_source_to_bronze"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_sql_server_param')]"
 			]
 		}
 	]
