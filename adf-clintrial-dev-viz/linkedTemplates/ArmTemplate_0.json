@@ -154,12 +154,48 @@
 			"properties": {
 				"linkedServiceName": {
 					"referenceName": "ls_on_prmise_metadataTable",
-					"type": "LinkedServiceReference"
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"pLsServerName": {
+							"value": "@dataset().pDsServerName",
+							"type": "Expression"
+						},
+						"pLsDataBaseName": {
+							"value": "@dataset().pDsDataBaseName",
+							"type": "Expression"
+						}
+					}
+				},
+				"parameters": {
+					"pDsServerName": {
+						"type": "string"
+					},
+					"pDsDataBaseName": {
+						"type": "string"
+					},
+					"pDsSchemaName": {
+						"type": "string"
+					},
+					"pDsTableName": {
+						"type": "string"
+					},
+					"abc": {
+						"type": "string"
+					}
 				},
 				"annotations": [],
 				"type": "SqlServerTable",
 				"schema": [],
-				"typeProperties": {}
+				"typeProperties": {
+					"schema": {
+						"value": "@dataset().pDsSchemaName",
+						"type": "Expression"
+					},
+					"table": {
+						"value": "@dataset().pDsTableName",
+						"type": "Expression"
+					}
+				}
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/ls_on_prmise_metadataTable')]"
@@ -211,7 +247,7 @@
 							"source": {
 								"type": "SqlServerSource",
 								"sqlReaderQuery": {
-									"value": "@concat(\n    'SELECT * FROM ',\n    pipeline().parameters.pPLDataBaseName,\n    '.',\n    pipeline().parameters.pPLScehamNAme,\n    '.',\n    pipeline().parameters.pPLTableName\n)\n\n",
+									"value": "@concat('select * from ',pipeline().parameters.pPLDataBaseName,'.',pipeline().parameters.pPLScehamNAme,'.',pipeline().parameters.pPLTableName,' where ' ,coalesce('Enabled',''),'=','\"True\"')\n",
 									"type": "Expression"
 								},
 								"queryTimeout": "02:00:00",
@@ -221,7 +257,25 @@
 							"dataset": {
 								"referenceName": "ds_sql_server_param",
 								"type": "DatasetReference",
-								"parameters": {}
+								"parameters": {
+									"pDsServerName": {
+										"value": "@pipeline().parameters.pPLserverName",
+										"type": "Expression"
+									},
+									"pDsDataBaseName": {
+										"value": "@pipeline().parameters.pPLDataBaseName",
+										"type": "Expression"
+									},
+									"pDsSchemaName": {
+										"value": "@pipeline().parameters.pPLScehamNAme",
+										"type": "Expression"
+									},
+									"pDsTableName": {
+										"value": "@pipeline().parameters.pPLTableName",
+										"type": "Expression"
+									},
+									"abc": "abc"
+								}
 							},
 							"firstRowOnly": false
 						}
