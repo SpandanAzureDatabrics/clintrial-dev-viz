@@ -18,10 +18,11 @@
 					"source": {
 						"type": "SqlServerSource",
 						"sqlReaderQuery": {
-							"value": "@concat('select * from ',pipeline().parameters.pPLDataBaseName,'.',pipeline().parameters.pPLScehamNAme,'.',pipeline().parameters.pPLTableName,' where ' ,coalesce('Enabled',''),'=','True')",
+							"value": "@concat(\n    'SELECT * FROM ',\n    pipeline().parameters.pPLDataBaseName,\n    '.',\n    pipeline().parameters.pPLScehamNAme,\n    '.',\n    pipeline().parameters.pPLTableName\n)\n\n",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00",
+						"isolationLevel": "ReadCommitted",
 						"partitionOption": "None"
 					},
 					"dataset": {
