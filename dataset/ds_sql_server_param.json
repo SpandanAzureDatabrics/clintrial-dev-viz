@@ -1,0 +1,12 @@
+{
+	"name": "ds_sql_server_param",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_on_prmise_metadataTable",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": []
+	}
+}
