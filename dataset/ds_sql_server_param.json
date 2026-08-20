@@ -3,10 +3,44 @@
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "ls_on_prmise_metadataTable",
-			"type": "LinkedServiceReference"
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"pLsServerName": {
+					"value": "@dataset().pDsServerName",
+					"type": "Expression"
+				},
+				"pLsDataBaseName": {
+					"value": "@dataset().pDsDataBaseName",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"pDsServerName": {
+				"type": "string"
+			},
+			"pDsDataBaseName": {
+				"type": "string"
+			},
+			"pDsSchemaName": {
+				"type": "string"
+			},
+			"pDsTableName": {
+				"type": "string"
+			}
 		},
 		"annotations": [],
 		"type": "SqlServerTable",
-		"schema": []
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().pDsSchemaName",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().pDsTableName",
+				"type": "Expression"
+			}
+		}
 	}
 }
