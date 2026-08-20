@@ -1,0 +1,24 @@
+{
+	"name": "trgClinTrialDevMasterScheeduled",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "plMasterPipelineClinTrialDevSourceToGold",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Minute",
+				"interval": 1,
+				"startTime": "2026-08-20T21:26:00",
+				"timeZone": "India Standard Time"
+			}
+		}
+	}
+}

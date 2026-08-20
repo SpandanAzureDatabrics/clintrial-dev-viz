@@ -1,0 +1,33 @@
+{
+	"name": "plMasterPipelineClinTrialDevSourceToGold",
+	"properties": {
+		"activities": [
+			{
+				"name": "ExecuteMasterCilnTrialDevSourceToGold",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "plsqlserver_bronze",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"pPLserverName": "localhost\\SQLEXPRESS",
+						"pPLDataBaseName": "dev_clintrail_edc_src",
+						"pPLScehamNAme": "dcsrcmetadata",
+						"pPLTableName": "srcEdcClintrailToLandControl"
+					}
+				}
+			}
+		],
+		"folder": {
+			"name": "clintrial_trial_dev_source_to_bronze"
+		},
+		"annotations": []
+	}
+}
